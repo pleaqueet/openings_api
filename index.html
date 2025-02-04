@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аниме опенинги</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; }
+        .container { max-width: 600px; margin: auto; }
+        .opening { padding: 10px; border: 1px solid #ddd; margin-top: 10px; }
+        button { margin-top: 5px; cursor: pointer; }
+        input { display: block; margin-bottom: 5px; width: 100%; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Список аниме опенингов</h1>
+    <div class="container">
+        <h3>Добавить новый опенинг</h3>
+        <input type="text" id="name" placeholder="Название">
+        <input type="text" id="file_path" placeholder="Ссылка на файл">
+        <input type="number" id="difficulty" placeholder="Сложность">
+        <button onclick="createOpening()">Добавить</button>
+
+        <h3>Список опенингов</h3>
+        <div id="openings"></div>
+    </div>
+
+    <script>
+        async function fetchOpenings() {
+            const response = await fetch("/api/openings");
+            const openings = await response.json();
+            const container = document.getElementById("openings");
+            container.innerHTML = "";
+
+            openings.forEach(opening => {
+                const div = document.createElement("div");
+                div.className = "opening";
+
+                div.innerHTML = `
+                    <input type="text" id="name-${opening.id}" value="${opening.name}">
+                    <input type="text" id="file-${opening.id}" value="${opening.file_path}">
+                    <input type="number" id="difficulty-${opening.id}" value="${opening.difficulty}">
+                    <button onclick="saveOpening(${opening.id})">Сохранить</button>
+                    <button onclick="deleteOpening(${opening.id})">Удалить</button>
+                `;
+
+                container.appendChild(div);
+            });
+        }
+
+        async function createOpening() {
+            const name = document.getElementById("name").value;
+            const file_path = document.getElementById("file_path").value;
+            const difficulty = document.getElementById("difficulty").value;
+
+            await fetch("/api/openings", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, file_path, difficulty })
+            });
+
+            fetchOpenings();
+        }
+
+        async function saveOpening(id) {
+            const name = document.getElementById(`name-${id}`).value;
+            const file_path = document.getElementById(`file-${id}`).value;
+            const difficulty = document.getElementById(`difficulty-${id}`).value;
+
+            await fetch("/api/openings", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id, name, file_path, difficulty })
+            });
+
+            fetchOpenings();
+        }
+
+        async function deleteOpening(id) {
+            await fetch(`/api/opening/${id}`, { method: "DELETE" });
+            fetchOpenings();
+        }
+
+        fetchOpenings();
+    </script>
+</body>
+</html>
