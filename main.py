@@ -51,6 +51,12 @@ def get_opening(id):
     return opening
 
 
+@app.get("/api/download_opening/{id}")
+def download_file(id):
+    opening = db.query(Opening).filter(Opening.id == id).first()
+    return FileResponse(path=str(opening.file_path))
+
+
 @app.post("/api/openings")
 def create_opening(data=Body()):
     opening = Opening(name=data["name"], file_path=data["file_path"], difficulty=data["difficulty"])
